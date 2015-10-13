@@ -113,7 +113,7 @@ def main():
     len_results = 0
     if not RANK:
         # root, start recieving data
-        with open(args.outfile, 'a') as fp:
+        with open(args.outfile, 'a', buffering=1) as fp:
             flush_t = -1
             for i in range(pow(4, args.mer_count)):
                 s = time.time() 
