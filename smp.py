@@ -1,4 +1,6 @@
 import argparse
+import cProfile, pstats
+from datetime import datetime
 from itertools import product
 import multiprocessing
 import sys
@@ -6,6 +8,10 @@ import time
 
 
 def get_conservation(tup):
+    start_time = datetime.now()
+    pr = cProfile.Profile()
+    pr.enable()
+
     p = multiprocessing.current_process()
 
     lines, permutation = tup
@@ -28,7 +34,7 @@ def get_conservation(tup):
     end_ts = time.time()
     duration = end_ts - start_ts
 
-    args = (p.pid, permutation, 
+    args = (id(lines), start_time, p.pid, permutation, 
             found_permutations, possible_permutations, 
             start_ts, duration)
 
@@ -37,6 +43,9 @@ def get_conservation(tup):
     sys.stdout.flush()
     lock.release()
 
+    pr.disable()
+    pr.dump_stats('profile-{}.out'.format(permutation))
+ 
     return permutation
 
 
@@ -83,6 +92,10 @@ def worker_init(l):
 
 
 def run_pool(lines, permutations, cpu_count):
+    sys.stdout.write('In pool at {}\n'.format(datetime.now()))
+    pr = cProfile.Profile()
+    pr.enable()
+
     sys.stdout.write('# Gathering args... ')
     sys.stdout.flush()
 
@@ -99,6 +112,10 @@ def run_pool(lines, permutations, cpu_count):
     pool = multiprocessing.Pool(initializer=worker_init,
                                 initargs=(l,),
                                 processes=cpu_count)
+    pr.disable()
+    pr.dump_stats('run_pool.out')
+    sys.stdout.write('# Throwing first job to pool at {}.\n'.format(datetime.now()))
+    sys.stdout.flush()
     results = pool.map(get_conservation, args)
 
     sys.stdout.write('# Done.\n')
@@ -131,10 +148,25 @@ def main():
                      ''.format(args.mer_count, args.process_count))
     sys.stdout.flush()
 
+    pr = cProfile.Profile()
+    pr.enable()
+
     permutations = get_mer_permutations(args.mer_count)
 
-    lines = get_sequence_lines(args.infile)
+    pr.disable()
+    pr.dump_stats('get_mer_permutations.out')
+    
+    pr = cProfile.Profile()
+    pr.enable()
 
+
+    lines = get_sequence_lines(args.infile)
+    pr.disable()
+    pr.dump_stats('get_sequence_lines.out')
+ 
+    sys.stdout.write('# Lines ID {}\n'.format(id(lines)))
+
+    sys.stdout.write('# Running run_pool at {}\n'.format(datetime.now()))
     run_pool(lines, permutations, args.process_count)
 
 
