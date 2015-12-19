@@ -1,8 +1,20 @@
 import argparse
+from datetime import datetime
 from itertools import product
 import multiprocessing
 import sys
 import time
+
+
+
+def occurrences(string, sub):
+    count = start = 0
+    while True:
+        start = string.find(sub, start) + 1
+        if start > 0:
+            count += 1
+        else:
+            return count
 
 
 def get_conservation(tup):
@@ -21,9 +33,7 @@ def get_conservation(tup):
         possible_perms_in_line = len_line - len_permutation + 1
         possible_permutations += possible_perms_in_line
 
-        for i in range(possible_perms_in_line):
-            if line[i:i + len_permutation] == permutation:
-                found_permutations += 1
+        found_permutations = occurrences(line, permutation)
 
     end_ts = time.time()
     duration = end_ts - start_ts
