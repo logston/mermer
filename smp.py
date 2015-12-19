@@ -135,6 +135,10 @@ def main():
 
     lines = get_sequence_lines(args.infile)
 
+    sys.stdout.write('# Lines ID {}\n'.format(id(lines)))
+
+    sys.stdout.write('# Running run_pool at {}/{}\n'
+                     ''.format(datetime.now(), time.time()))
     run_pool(lines, permutations, args.process_count)
 
 
