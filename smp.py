@@ -17,13 +17,7 @@ def occurrences(string, sub):
             return count
 
 
-def get_conservation(tup):
-    p = multiprocessing.current_process()
-
-    lines, permutation = tup
-
-    start_ts = time.time()
-
+def get_conservation(lines, permutation):
     found_permutations = 0
     len_permutation = len(permutation)
     possible_permutations = 0
@@ -33,13 +27,22 @@ def get_conservation(tup):
         possible_perms_in_line = len_line - len_permutation + 1
         possible_permutations += possible_perms_in_line
 
-        found_permutations = occurrences(line, permutation)
+        found_permutations += occurrences(line, permutation)
+
+    return found_permutations, possible_permutations
+
+
+def lock_and_get_conservation(tup):
+    p = multiprocessing.current_process()
+    start_ts = time.time()
+
+    found_permutations, possible_permutations = get_conservation(*tup)
 
     end_ts = time.time()
     duration = end_ts - start_ts
 
-    args = (p.pid, permutation, 
-            found_permutations, possible_permutations, 
+    args = (p.pid, tup[1],
+            found_permutations, possible_permutations,
             start_ts, duration)
 
     lock.acquire()
@@ -47,7 +50,7 @@ def get_conservation(tup):
     sys.stdout.flush()
     lock.release()
 
-    return permutation
+    return found_permutations, possible_permutations
 
 
 def get_sequence_lines(file_name):

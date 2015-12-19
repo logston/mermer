@@ -1,2 +1,4 @@
 scratch/
 utils/
+__pycache__
+*.swp
