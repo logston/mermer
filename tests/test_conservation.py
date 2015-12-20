@@ -1,25 +1,23 @@
 import unittest
 
-from smp import occurrences
-from smp import get_conservation
+from smp import get_counts
 
 
-class OccurrencesTC(unittest.TestCase):
-    def test_occrrences(self):
-        count = occurrences('TTCANAGTGGCTAAGTTCTGC', 'TTC')
-        self.assertEqual(count, 2)
-
-
-class ConservationTC(unittest.TestCase):
-    def test_get_conservation(self):
+class CountTC(unittest.TestCase):
+    def test_get_counts(self):
         lines = [
             'TTCANAGTGGCTAAGTTCTGC',
-            'AACANTCAACGCTGTCGGTGAGTT',
-            'ATTCNAGTGATTTAGCTTATAGGT',
         ]
-        permutations = ('AA', 'AC', 'TC')
-        expected = ((3, 66), (2, 66), (5, 66))
-        for i, permutation in enumerate(permutations):
-            results = get_conservation(lines, permutation)
-            self.assertEqual(results, expected[i])
+        counter, possible_count = get_counts(lines, 2)
+        self.assertEqual(possible_count, 20)
+        counter = dict(counter)
+        expected = {
+            'AA': 1, 'AC': 0, 'AG': 2, 'AN': 1, 'AT': 0,
+            'CA': 1, 'CC': 0, 'CG': 0, 'CN': 0, 'CT': 2,
+            'GA': 0, 'GC': 2, 'GG': 1, 'GN': 0, 'GT': 2,
+            'NA': 1, 'NC': 0, 'NG': 0, 'NN': 0, 'NT': 0,
+            'TA': 1, 'TC': 2, 'TG': 2, 'TN': 0, 'TT': 2,
+        }
+        expected = {k: v for k, v in expected.items() if v}
+        self.assertEqual(counter, expected)
 
