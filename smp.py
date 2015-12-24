@@ -1,6 +1,7 @@
 import argparse
 import collections
 from itertools import product
+import random
 import sys
 import time
 
@@ -22,6 +23,12 @@ def get_sequence_lines(file_name):
     sys.stdout.write('{} sequences to search.\n'.format(len(lines)))
     sys.stdout.flush()
     return lines
+
+
+def randomize_nucleotides(lines, seed):
+    random.seed(a=seed, version=2)
+    for line in lines:
+        yield ''.join(random.sample(line, len(line)))
 
 
 def get_mer_permutations(mer_count):
@@ -54,8 +61,8 @@ def run_count(lines, mer_length):
     start_ts = time.time()
 
     sys.stdout.write('# Running {}-mer search.\n'.format(mer_length))
-    sys.stdout.write('# Searching {} nucleotide strings (started at {}) ... '
-                     ''.format(len(lines), start_ts))
+    sys.stdout.write('# Searching nucleotide strings (started at {}) ... '
+                     ''.format(start_ts))
     sys.stdout.flush()
 
     counter, possible_permutations_count = get_counts(lines, mer_length)
@@ -93,9 +100,19 @@ def main():
     parser.add_argument('mer_length',
                         type=int,
                         help='Length of n-mer (in nucleotides)')
+    parser.add_argument('-r', '--randomize',
+                        default=0,
+                        type=int,
+                        help='Randomization seed for randomizing line data')
     args = parser.parse_args()
 
     lines = get_sequence_lines(args.infile)
+
+    if args.randomize:
+        sys.stdout.write('# Randomizing with seed integer {}\n'
+                         ''.format(args.randomize))
+        sys.stdout.flush()
+        lines = randomize_nucleotides(lines, args.randomize)
 
     run_count(lines, args.mer_length)
 
